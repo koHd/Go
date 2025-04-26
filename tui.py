@@ -26,11 +26,20 @@ class GoTUI:
         start_y     = (h // 2) - (board_h // 2)
         start_x     = (w // 2) - (board_w // 2)
 
-        # --- live score display ---
-        terr    = self.game.board.calculate_territory()
-        caps    = self.game.board.captures
-        black_s = terr["X"] + caps["O"]
-        white_s = terr["O"] + caps["X"] + self.game.komi
+        # ── COLUMN LABELS ────────────────────────────────────────────────
+        # e.g.   A   B   C   … above the top row of cells
+        col_labels = [chr(ord("A") + i) for i in range(size)]
+        label_row = start_y - 1
+        for idx, ch in enumerate(col_labels):
+            # center the label over the cell
+            x = start_x + idx * (cell_w + 1) + (cell_w // 2)
+            self.stdscr.addstr(label_row, x, ch)
+
+            # --- live score display ---
+            terr    = self.game.board.calculate_territory()
+            caps    = self.game.board.captures
+            black_s = terr["X"] + caps["O"]
+            white_s = terr["O"] + caps["X"] + self.game.komi
 
         score_lines = [
             f"Black {STONE_ICONS['X']}: {black_s:.1f} (T:{terr['X']},C:{caps['O']})",
@@ -41,10 +50,14 @@ class GoTUI:
 
         # --- title ---
         title = f"GO ({size}x{size}) – Arrows to move, Space/Enter to place, P to pass, Q to quit"
-        self.stdscr.addstr(start_y - 2, max((w - len(title)) // 2, 0), title)
+        self.stdscr.addstr(start_y - 3, max((w - len(title)) // 2, 0), title)
 
         # --- board drawing ---
         for row in range(size):
+            y = start_y + row * 2
+            row_label = str(row + 1)
+            self.stdscr.addstr(y, start_x - 3, row_label.rjust(2))
+
             for col in range(size):
                 idx    = row * size + col
                 sym    = self.game.board.cells[idx]
@@ -55,7 +68,6 @@ class GoTUI:
                     disp = f" {stone} "
                 disp = disp.ljust(cell_w)
 
-                y = start_y + row * 2
                 x = start_x + col * (cell_w + 1)
                 self.stdscr.addstr(y, x, disp)
                 if col < size - 1:
